@@ -37,6 +37,7 @@ ALLOWED_HOSTS = [
     for host in config("ALLOWED_HOSTS", default="127.0.0.1,localhost").split(",")
     if host.strip()
 ]
+
 railway_domain = os.environ.get("RAILWAY_PUBLIC_DOMAIN", "").strip()
 if railway_domain and railway_domain not in ALLOWED_HOSTS:
     ALLOWED_HOSTS.append(railway_domain)

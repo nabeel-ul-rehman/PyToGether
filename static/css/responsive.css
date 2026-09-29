@@ -16,6 +16,262 @@ body {
     margin: 0;
 }
 
+@media (max-width: 640px) {
+    #homeHeader {
+        width: 100%;
+        max-width: none;
+        margin: 0;
+        padding: 0.8rem 1rem;
+        gap: 0.5rem;
+        background: #fff;
+        color: #0f172a;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    #homeHeader > div:first-child {
+        min-width: 0;
+        gap: 0.45rem;
+        flex-shrink: 1;
+    }
+
+    #homeHeader > div:first-child > div {
+        width: 2.25rem;
+        height: 2.25rem;
+        flex: 0 0 2.25rem;
+        border-radius: 0.6rem;
+        font-size: 1rem;
+    }
+
+    #homeHeader > div:first-child > span {
+        color: #0f172a;
+        font-size: 1.05rem;
+        line-height: 1.15;
+        white-space: nowrap;
+    }
+
+    #homeHeader > div:last-child {
+        flex: 0 0 auto;
+        gap: 0.2rem;
+    }
+
+    #homeHeader > div:last-child > a {
+        padding: 0.52rem 0.65rem;
+        border-radius: 0.55rem;
+        font-size: 0.78rem;
+        line-height: 1.15;
+        white-space: nowrap;
+    }
+
+    #homeHeader > div:last-child > a:first-child {
+        color: #334155;
+    }
+
+    #homeHeader > div:last-child > a:first-child:hover {
+        background: #f1f5f9;
+    }
+
+    #homeHero {
+        width: 100%;
+        max-width: none;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 2rem;
+        padding: 2rem 1.1rem 3rem;
+    }
+
+    #homeHero > div:first-child {
+        min-width: 0;
+    }
+
+    #homeHero > div:first-child > span {
+        gap: 0.4rem;
+        padding: 0.4rem 0.7rem;
+        font-size: 0.68rem;
+    }
+
+    #homeHero h1 {
+        margin-top: 1rem;
+        font-size: clamp(2rem, 8.2vw, 2.55rem);
+        line-height: 1.12;
+        letter-spacing: -0.035em;
+    }
+
+    #homeHero > div:first-child > p {
+        max-width: 34rem;
+        margin-top: 0.9rem;
+        font-size: 0.98rem;
+        line-height: 1.6;
+    }
+
+    #homeHero > div:first-child > div:nth-of-type(1) {
+        margin-top: 1.25rem;
+        gap: 0.65rem;
+    }
+
+    #homeHero > div:first-child > div:nth-of-type(1) > a {
+        width: 100%;
+        min-height: 3.1rem;
+        justify-content: center;
+        padding: 0.8rem 1rem;
+        border-radius: 0.8rem;
+        font-size: 0.9rem;
+        line-height: 1.3;
+        text-align: center;
+    }
+
+    #homeHero > div:first-child > div:nth-of-type(2) {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0.5rem;
+        margin-top: 1.25rem;
+        font-size: 0.66rem;
+        line-height: 1.35;
+        text-align: center;
+    }
+
+    #homeHero > div:first-child > div:nth-of-type(2) > div {
+        min-width: 0;
+        padding: 0.6rem 0.35rem;
+        border: 1px solid #e8eaf2;
+        border-radius: 0.7rem;
+        background: #fff;
+    }
+
+    #homeHero > div:first-child > div:nth-of-type(2) span {
+        margin-bottom: 0.15rem;
+        font-size: 1.1rem;
+        line-height: 1.2;
+    }
+
+    #homeHero > div:last-child {
+        min-width: 0;
+        margin: 0 0.15rem;
+    }
+
+    #homeHero > div:last-child > div:last-child {
+        padding: 1rem;
+        border-radius: 1rem;
+    }
+
+    #homeHero > div:last-child > div:last-child > div:first-child {
+        gap: 0.5rem;
+        margin-bottom: 0.9rem;
+    }
+
+    #homeHero > div:last-child > div:last-child > div:first-child p:first-child {
+        font-size: 0.75rem;
+    }
+
+    #homeHero > div:last-child > div:last-child > div:first-child p:last-child {
+        font-size: 0.95rem;
+        line-height: 1.35;
+    }
+
+    #homeHero > div:last-child > div:last-child > div:first-child > span {
+        flex: 0 0 auto;
+        padding: 0.3rem 0.55rem;
+        font-size: 0.65rem;
+    }
+
+    #homeHero > div:last-child > div:last-child > div:nth-child(2) > div {
+        gap: 0.4rem;
+        padding: 0.65rem;
+    }
+
+    #homeHero > div:last-child > div:last-child > div:nth-child(2) > div > div {
+        min-width: 0;
+        gap: 0.5rem;
+    }
+
+    #homeHero > div:last-child > div:last-child > div:nth-child(2) > div > div > div:first-child {
+        width: 2.25rem;
+        height: 2.25rem;
+        flex: 0 0 2.25rem;
+    }
+
+    #homeHero > div:last-child > div:last-child > div:nth-child(2) > div > span {
+        flex: 0 0 auto;
+        font-size: 0.72rem;
+    }
+
+    #homeHero > div:last-child > div:last-child > div:last-child {
+        margin-top: 0.9rem;
+        padding-top: 0.75rem;
+        font-size: 0.8rem;
+    }
+
+    #homeFeatures > div {
+        padding: 2.5rem 1.1rem;
+    }
+
+    #homeFeatures h2 {
+        font-size: 1.55rem;
+        line-height: 1.2;
+    }
+
+    #homeFeatures > div > p {
+        margin-top: 0.6rem;
+        font-size: 0.9rem;
+        line-height: 1.5;
+    }
+
+    #homeFeatures > div > div {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 0.75rem;
+        margin-top: 1.5rem;
+    }
+
+    #homeFeatures > div > div > div {
+        padding: 1rem;
+        border-radius: 1rem;
+    }
+
+    #homeFeatures > div > div > div > div {
+        width: 2.6rem;
+        height: 2.6rem;
+    }
+
+    #homeFeatures h3 {
+        margin-top: 0.75rem;
+        font-size: 0.98rem;
+    }
+
+    #homeFeatures > div > div > div > p {
+        margin-top: 0.3rem;
+        font-size: 0.84rem;
+        line-height: 1.5;
+    }
+
+    #homeCta {
+        width: 100%;
+        max-width: none;
+        padding: 3rem 1.1rem;
+    }
+
+    #homeCta h2 {
+        font-size: 1.7rem;
+        line-height: 1.2;
+    }
+
+    #homeCta p {
+        margin-top: 0.7rem;
+        font-size: 0.9rem;
+        line-height: 1.5;
+    }
+
+    #homeCta a {
+        min-height: 3.1rem;
+        margin-top: 1.3rem;
+        padding: 0.8rem 1.15rem;
+        font-size: 0.9rem;
+    }
+
+    #homeFooter {
+        padding: 1.1rem 1rem;
+        font-size: 0.75rem;
+        line-height: 1.45;
+    }
+}
+
 img,
 svg,
 video,
