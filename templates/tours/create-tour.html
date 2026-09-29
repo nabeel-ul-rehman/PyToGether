@@ -1,0 +1,87 @@
+{% extends "layout/app_shell.html" %}
+{% load static %}
+
+{% block title %}Create Tour — PayTogether{% endblock %}
+{% block page_title %}Create Tour{% endblock %}
+
+{% block page_content %}
+<div class="px-3 pb-3 pt-6 sm:p-8">
+    <div class="mx-auto w-full max-w-3xl min-w-0">
+
+        <div class="mb-4 sm:mb-6">
+            <h1 class="text-xl font-extrabold text-slate-900 sm:text-2xl">Create a New Tour</h1>
+            <p class="text-slate-500 mt-1">Set up the trip once — you'll get a join code to share with everyone.</p>
+        </div>
+
+        <div class="rounded-2xl border border-slate-100 bg-white p-4 shadow-card sm:p-8">
+            <form id="tourform">
+                <div class="grid gap-4 sm:gap-5 md:grid-cols-2 md:gap-6">
+                    <div class="md:col-span-2">
+                        <label class="font-semibold text-sm text-slate-700">Tour Title</label>
+                        <input id="title" type="text" placeholder="e.g. Northern Areas Trip 2026"
+                            class="w-full border border-slate-200 rounded-xl p-3 mt-2 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition">
+                    </div>
+                    <div>
+                        <label class="font-semibold text-sm text-slate-700">Destination</label>
+                        <input id="destination" type="text" placeholder="e.g. Hunza Valley"
+                            class="w-full border border-slate-200 rounded-xl p-3 mt-2 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition">
+                    </div>
+                    <div>
+                        <label class="font-semibold text-sm text-slate-700">Budget (PKR)</label>
+                        <input id="budget" type="number" min="0" step="0.01" placeholder="0.00"
+                            class="w-full border border-slate-200 rounded-xl p-3 mt-2 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition">
+                    </div>
+                    <div>
+                        <label class="font-semibold text-sm text-slate-700">Status</label>
+                        <select id="status"
+                            class="w-full border border-slate-200 rounded-xl p-3 mt-2 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition">
+                            <option value="planned">Planned</option>
+                            <option value="ongoing">Ongoing</option>
+                            <option value="completed">Completed</option>
+                            <option value="cancelled">Cancelled</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="font-semibold text-sm text-slate-700">Start Date</label>
+                        <input id="startDate" type="date"
+                            class="w-full border border-slate-200 rounded-xl p-3 mt-2 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition">
+                    </div>
+                    <div>
+                        <label class="font-semibold text-sm text-slate-700">End Date</label>
+                        <input id="endDate" type="date"
+                            class="w-full border border-slate-200 rounded-xl p-3 mt-2 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label for="image" class="font-semibold text-sm text-slate-700">Tour Image <span class="font-normal text-slate-400">(optional)</span></label>
+                        <input id="image" name="image" type="file" accept="image/*"
+                            class="block w-full border border-slate-200 rounded-xl p-2.5 mt-2 text-sm text-slate-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-brand-50 file:text-brand-700 file:font-semibold hover:file:bg-brand-100">
+                        <p class="mt-2 text-xs text-slate-500">Choose a cover image for the tour.</p>
+                        <div id="imagePreviewContainer" class="hidden mt-4">
+                            <img id="imagePreview" src="" alt="Selected tour image preview" class="w-full max-w-md h-64 object-cover rounded-xl border border-slate-200">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-6">
+                    <label class="font-semibold text-sm text-slate-700">Description</label>
+                    <textarea id="description" rows="4" placeholder="Anything members should know before joining..."
+                        class="w-full border border-slate-200 rounded-xl p-3 mt-2 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition"></textarea>
+                </div>
+
+                <div id="message" class="mt-6"></div>
+
+                <div class="mt-8 flex gap-3">
+                    <button class="bg-brand-600 hover:bg-brand-700 text-white font-semibold px-8 py-3 rounded-xl shadow-soft transition inline-flex items-center gap-2">
+                        <i data-lucide="check" class="w-4 h-4"></i> Save Tour
+                    </button>
+                    <a href="/tours/" class="px-8 py-3 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 transition">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'js/create-tour.js' %}"></script>
+{% endblock %}

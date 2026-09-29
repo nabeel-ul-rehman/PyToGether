@@ -1,0 +1,257 @@
+{% extends "layout/app_shell.html" %}
+{% load static %}
+
+{% block title %}My Tours — PayTogether{% endblock %}
+{% block page_title %}My Tours{% endblock %}
+
+{% block mobile_nav %}{% endblock %}
+{% block shell_class %}tour-list-shell{% endblock %}
+
+{% block extra_head %}
+<style>
+    .tour-list-shell #tableContainer {
+        overflow-x: auto;
+        overscroll-behavior-inline: contain;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .tour-list-shell #tourTable {
+        width: 100%;
+        min-width: 100%;
+        max-width: 100%;
+        table-layout: fixed;
+    }
+
+    .tour-list-shell #tourTable th:first-child,
+    .tour-list-shell #tourTable td:first-child {
+        padding-left: 1.25rem;
+    }
+
+    @media (max-width: 639px) {
+        .tour-list-shell #tourTable td:first-child,
+        .tour-list-shell #tourTable th:first-child {
+            padding-left: 0.5rem;
+        }
+
+        .tour-list-shell #tourTable td,
+        .tour-list-shell #tourTable th {
+            min-width: 0;
+        }
+    }
+
+</style>
+{% endblock %}
+
+{% block page_content %}
+<div class="w-full px-3 py-4 sm:px-8 sm:py-8 lg:px-10">
+
+    <!-- Page Header -->
+    <div class="flex flex-col gap-4 mb-6 sm:mb-8 md:flex-row md:items-center md:justify-between">
+        <div>
+            <h1 class="text-xl font-extrabold text-slate-900 sm:text-3xl">Tour Management</h1>
+            <p class="mt-1 text-xs text-slate-500 sm:text-base">Manage and organize all your tours in one place.</p>
+        </div>
+
+        <div class="flex w-full gap-2 sm:gap-3 md:w-auto">
+            <a href="/tours/join/"
+                class="inline-flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 sm:flex-none sm:gap-2 sm:px-5 sm:py-3 sm:text-sm">
+                <i data-lucide="link-2" class="h-3.5 w-3.5 sm:h-4 sm:w-4"></i>
+                Join Tour
+            </a>
+            <a href="/tours/create/"
+                class="inline-flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-xl bg-brand-600 px-3 py-2.5 text-xs font-semibold text-white shadow-soft transition hover:bg-brand-700 sm:flex-none sm:gap-2 sm:px-5 sm:py-3 sm:text-sm">
+                <i data-lucide="plus" class="h-3.5 w-3.5 sm:h-4 sm:w-4"></i>
+                <span class="truncate">Create New Tour</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Search Section -->
+    <div id="tourSearchCard" class="mb-4 rounded-xl border border-slate-100 bg-white p-3 shadow-card sm:mb-6 sm:rounded-2xl sm:p-5">
+        <form id="searchForm" class="flex w-full max-w-lg items-center gap-2 sm:gap-3">
+                <div class="relative min-w-0 flex-1">
+                    <i data-lucide="search" class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                    <input
+                        type="text"
+                        id="searchInput"
+                        placeholder="Search by tour title or destination..."
+                        class="w-full rounded-xl border border-slate-200 py-2.5 pl-10 pr-4 text-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-brand-500 transition sm:py-3">
+                </div>
+                <div class="tour-search-actions flex shrink-0 items-center gap-2">
+                    <button type="submit"
+                        class="min-h-11 shrink-0 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 sm:px-6 sm:py-3">
+                        Search
+                    </button>
+                    <button type="button" id="clearSearchBtn" class="hidden min-h-11 shrink-0 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 sm:px-5 sm:py-3">
+                        Clear
+                    </button>
+                </div>
+        </form>
+    </div>
+
+    <!-- Message Area -->
+    <div id="messageArea" class="mb-4"></div>
+
+    <!-- Tour Table Card -->
+    <div class="overflow-hidden rounded-xl border border-slate-100 bg-white shadow-card sm:rounded-2xl">
+
+        <div class="border-b border-slate-100 px-3 py-3 sm:px-6 sm:py-5">
+            <h2 class="text-base font-bold text-slate-900 sm:text-lg">My Tours</h2>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loadingState" class="px-3 py-12 text-center sm:py-16">
+            <div class="inline-block h-8 w-8 rounded-full border-4 border-slate-200 border-t-brand-600 animate-spin sm:h-10 sm:w-10"></div>
+            <p class="mt-3 text-sm text-slate-500 sm:mt-4">Loading tours...</p>
+        </div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="hidden px-4 py-12 text-center sm:py-16">
+            <div class="mb-4 flex justify-center text-slate-300">
+                <i data-lucide="map" class="h-10 w-10 sm:h-12 sm:w-12"></i>
+            </div>
+            <h3 id="emptyStateTitle" class="text-lg font-bold text-slate-800 sm:text-xl">No Tours Found</h3>
+            <p id="emptyStateMessage" class="mt-2 mb-5 text-sm text-slate-500 sm:mb-6">You haven't created any tours yet.</p>
+            <a id="emptyStateButton" href="/tours/create/"
+                class="inline-flex rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-700 sm:px-5 sm:py-3">
+                Create Your First Tour
+            </a>
+        </div>
+
+        <!-- Table Container -->
+        <div id="tableContainer" class="hidden overflow-hidden rounded-xl">
+            <table id="tourTable" class="w-full table-fixed text-left text-xs sm:text-sm [&_td]:overflow-hidden [&_td]:px-2 [&_td]:py-2 sm:[&_td]:px-3 sm:[&_td]:py-3">
+                <colgroup>
+                    <col class="w-[18%] sm:w-[8%]">
+                    <col class="w-[42%] sm:w-[18%]">
+                    <col class="hidden sm:table-column sm:w-[11%]">
+                    <col class="hidden sm:table-column sm:w-[12%]">
+                    <col class="w-[24%] sm:w-[15%]">
+                    <col class="hidden sm:table-column sm:w-[12%]">
+                    <col class="hidden sm:table-column sm:w-[12%]">
+                    <col class="w-[16%] sm:w-[12%]">
+                </colgroup>
+                <thead class="bg-slate-50 border-b border-slate-100">
+                    <tr>
+                        <th class="px-2 py-3 text-[10px] font-bold uppercase tracking-wide text-slate-500 sm:px-3 sm:py-4 sm:text-xs">Image</th>
+                        <th class="px-2 py-3 text-[10px] font-bold uppercase tracking-wide text-slate-500 sm:px-3 sm:py-4 sm:text-xs">Tour</th>
+                        <th class="hidden px-3 py-4 text-xs font-bold uppercase tracking-wide text-slate-500 sm:table-cell">Destination</th>
+                        <th class="hidden px-3 py-4 text-xs font-bold uppercase tracking-wide text-slate-500 sm:table-cell">Joining Code</th>
+                        <th class="px-2 py-3 text-[10px] font-bold uppercase tracking-wide text-slate-500 sm:px-3 sm:py-4 sm:text-xs">Budget</th>
+                        <th class="hidden px-3 py-4 text-xs font-bold uppercase tracking-wide text-slate-500 sm:table-cell">Dates</th>
+                        <th class="hidden px-3 py-4 text-xs font-bold uppercase tracking-wide text-slate-500 sm:table-cell">Status</th>
+                        <th class="px-1 py-3 text-center text-[10px] font-bold uppercase tracking-wide text-slate-500 sm:px-3 sm:py-4 sm:text-xs">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="tourTableBody" class="divide-y divide-slate-100">
+                    <!-- Tours are inserted here by tour-list.js -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="hidden fixed inset-0 z-50 overflow-y-auto">
+        <div id="deleteModalOverlay" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm"></div>
+        <div class="relative min-h-screen flex items-center justify-center p-4">
+            <div class="relative w-full max-w-lg bg-white rounded-2xl shadow-xl p-6 sm:p-7">
+                <div class="flex items-start justify-between mb-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-900">Delete Tour</h2>
+                        <p class="text-slate-500 text-sm mt-1">This action cannot be undone.</p>
+                    </div>
+                    <button type="button" id="closeDeleteModalBtn" class="text-slate-400 hover:text-slate-600 text-2xl leading-none">&times;</button>
+                </div>
+                <div id="deleteModalMessage" class="text-slate-700 mb-6">Are you sure you want to delete this tour?</div>
+                <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
+                    <button type="button" id="cancelDeleteBtn" class="px-5 py-2.5 border border-slate-200 rounded-xl text-slate-700 hover:bg-slate-50 transition">Cancel</button>
+                    <button type="button" id="confirmDeleteBtn" class="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl font-semibold transition">Delete Tour</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Share Tour Modal -->
+    <div id="shareModal" class="hidden fixed inset-0 z-50 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="shareModalTitle">
+        <div id="shareModalOverlay" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm"></div>
+        <div class="relative min-h-screen flex items-center justify-center p-4">
+            <div class="relative w-full max-w-md bg-white rounded-2xl shadow-xl p-6">
+                <div class="flex items-start justify-between gap-4 mb-2">
+                    <div>
+                        <h2 id="shareModalTitle" class="text-xl font-bold text-slate-900">Share Tour</h2>
+                        <p id="shareTourName" class="text-sm text-slate-500 mt-1"></p>
+                    </div>
+                    <button type="button" id="closeShareModalBtn" class="text-slate-400 hover:text-slate-600 text-2xl leading-none" aria-label="Close share options">&times;</button>
+                </div>
+
+                <div class="mt-5">
+                    <label for="shareLinkInput" class="block text-sm font-semibold text-slate-700 mb-2">Invite link</label>
+                    <div class="flex gap-2">
+                        <input id="shareLinkInput" type="text" readonly class="min-w-0 flex-1 border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-600 bg-slate-50 focus:outline-none">
+                        <button type="button" id="copyShareLinkBtn" class="inline-flex items-center gap-1.5 bg-brand-600 hover:bg-brand-700 text-white font-semibold px-4 py-2.5 rounded-xl transition">
+                            <i data-lucide="copy" class="w-4 h-4"></i> Copy
+                        </button>
+                    </div>
+                </div>
+
+                <p class="text-sm font-semibold text-slate-700 mt-6 mb-3">Share via</p>
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    <a id="shareWhatsAppBtn" href="#" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center gap-2 rounded-xl bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-3 transition">
+                        <i data-lucide="message-circle" class="w-4 h-4"></i> WhatsApp
+                    </a>
+                    <a id="shareTelegramBtn" href="#" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center gap-2 rounded-xl bg-sky-500 hover:bg-sky-600 text-white font-semibold px-4 py-3 transition">
+                        <i data-lucide="send" class="w-4 h-4"></i> Telegram
+                    </a>
+                    <a id="shareEmailBtn" href="#" class="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold px-4 py-3 transition">
+                        <i data-lucide="mail" class="w-4 h-4"></i> Email
+                    </a>
+                    <a id="shareFacebookBtn" href="#" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-3 transition">
+                        <span class="font-bold text-base leading-none">f</span> Facebook
+                    </a>
+                    <a id="shareXBtn" href="#" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold px-4 py-3 transition">
+                        <i data-lucide="at-sign" class="w-4 h-4"></i> X
+                    </a>
+                    <a id="shareSmsBtn" href="#" class="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold px-4 py-3 transition">
+                        <i data-lucide="message-square" class="w-4 h-4"></i> SMS
+                    </a>
+                    <button type="button" id="shareNativeBtn" aria-expanded="false" aria-controls="moreShareOptions" class="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold px-4 py-3 transition">
+                        <i data-lucide="ellipsis" class="w-4 h-4"></i> More apps
+                    </button>
+                </div>
+
+                <div id="moreShareOptions" class="hidden mt-4 border-t border-slate-100 pt-4">
+                    <p class="text-sm font-semibold text-slate-700 mb-3">More sharing options</p>
+                    <div class="grid grid-cols-2 gap-3">
+                        <a id="shareLinkedInBtn" href="#" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-700 hover:bg-blue-800 text-white font-semibold px-4 py-3 transition">
+                            <i data-lucide="briefcase-business" class="w-4 h-4"></i> LinkedIn
+                        </a>
+                        <a id="shareRedditBtn" href="#" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold px-4 py-3 transition">
+                            <i data-lucide="message-circle-more" class="w-4 h-4"></i> Reddit
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    <div id="paginationContainer" class="hidden mt-4 flex flex-col items-center justify-between gap-3 sm:mt-6 sm:flex-row sm:gap-4">
+        <div id="paginationInfo" class="text-xs text-slate-500 sm:text-sm">Showing tours</div>
+        <div class="flex items-center gap-2 sm:gap-3">
+            <button type="button" id="previousPageBtn"
+                class="rounded-xl border border-slate-200 px-3 py-2 text-xs text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 sm:px-4 sm:text-sm">
+                &larr; Previous
+            </button>
+            <div id="currentPageInfo" class="rounded-xl bg-brand-50 px-3 py-2 text-xs font-semibold text-brand-700 sm:px-4 sm:text-sm">Page 1</div>
+            <button type="button" id="nextPageBtn"
+                class="rounded-xl border border-slate-200 px-3 py-2 text-xs text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 sm:px-4 sm:text-sm">
+                Next &rarr;
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'js/tour-list.js' %}?v=3"></script>
+{% endblock %}
