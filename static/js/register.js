@@ -3,6 +3,41 @@ const messageBox = document.getElementById("message");
 
 registerForm.addEventListener("submit", registerUser);
 
+const paymentMethodsContainer = document.getElementById("paymentMethods");
+document.getElementById("addPaymentMethod").addEventListener("click", () => {
+    const firstRow = paymentMethodsContainer.querySelector(".payment-method-row");
+    const row = firstRow.cloneNode(true);
+    row.querySelector("select").selectedIndex = 0;
+    row.querySelector("input").value = "";
+    row.querySelector(".remove-payment-method").classList.remove("hidden");
+    paymentMethodsContainer.appendChild(row);
+    updatePaymentMethodRows();
+});
+
+paymentMethodsContainer.addEventListener("change", (event) => {
+    if (event.target.matches(".payment-method-select")) updatePaymentMethodRows();
+});
+paymentMethodsContainer.addEventListener("click", (event) => {
+    const removeButton = event.target.closest(".remove-payment-method");
+    if (removeButton) {
+        removeButton.closest(".payment-method-row").remove();
+        updatePaymentMethodRows();
+    }
+});
+
+function updatePaymentMethodRows() {
+    const rows = [...paymentMethodsContainer.querySelectorAll(".payment-method-row")];
+    rows.forEach((row) => {
+        const isCash = row.querySelector("select").value === "cash";
+        const identifier = row.querySelector("input");
+        identifier.disabled = isCash;
+        identifier.required = !isCash;
+        identifier.placeholder = isCash ? "No account details needed" : "Account number or ID";
+        row.querySelector(".remove-payment-method").classList.toggle("hidden", rows.length === 1);
+    });
+}
+updatePaymentMethodRows();
+
 async function registerUser(event) {
     event.preventDefault();
 
@@ -11,6 +46,10 @@ async function registerUser(event) {
     const full_name = document.getElementById("full_name").value.trim();
     const email = document.getElementById("email").value.trim();
     const phone = document.getElementById("phone").value.trim();
+    const payment_methods = [...paymentMethodsContainer.querySelectorAll(".payment-method-row")].map((row) => ({
+        method: row.querySelector("select").value,
+        identifier: row.querySelector("input").value.trim(),
+    }));
     const password = document.getElementById("password").value;
     const confirm_password = document.getElementById("confirm_password").value
 
@@ -47,6 +86,7 @@ async function registerUser(event) {
                 full_name,
                 email,
                 phone,
+                payment_methods,
                 password,
                 confirm_password
             })

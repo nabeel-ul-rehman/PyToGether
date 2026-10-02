@@ -4,7 +4,57 @@ document.addEventListener("DOMContentLoaded", function () {
     loadProfile();
     document.getElementById("profileForm").addEventListener("submit", saveProfile);
     document.getElementById("changePasswordForm").addEventListener("submit", changePassword);
+    setupProfilePaymentMethods();
 });
+
+function setupProfilePaymentMethods() {
+    const container = document.getElementById("profilePaymentMethods");
+    document.getElementById("addProfilePaymentMethod").addEventListener("click", () => {
+        const row = container.querySelector(".profile-payment-method-row").cloneNode(true);
+        row.querySelector("select").selectedIndex = 0;
+        row.querySelector("input").value = "";
+        container.appendChild(row);
+        updateProfilePaymentMethodRows();
+    });
+    container.addEventListener("change", (event) => {
+        if (event.target.matches(".profile-payment-method-select")) updateProfilePaymentMethodRows();
+    });
+    container.addEventListener("click", (event) => {
+        const removeButton = event.target.closest(".remove-profile-payment-method");
+        if (removeButton) {
+            removeButton.closest(".profile-payment-method-row").remove();
+            updateProfilePaymentMethodRows();
+        }
+    });
+    updateProfilePaymentMethodRows();
+}
+
+function updateProfilePaymentMethodRows() {
+    const container = document.getElementById("profilePaymentMethods");
+    const rows = [...container.querySelectorAll(".profile-payment-method-row")];
+    rows.forEach((row) => {
+        const isCash = row.querySelector("select").value === "cash";
+        const input = row.querySelector("input");
+        input.disabled = isCash;
+        input.required = !isCash;
+        input.placeholder = isCash ? "No account details needed" : "Account number or ID";
+        row.querySelector(".remove-profile-payment-method").classList.toggle("hidden", rows.length === 1);
+    });
+}
+
+function renderProfilePaymentMethods(paymentMethods = []) {
+    const container = document.getElementById("profilePaymentMethods");
+    const templateRow = container.querySelector(".profile-payment-method-row").cloneNode(true);
+    container.replaceChildren();
+    const entries = paymentMethods.length ? paymentMethods : [{ method: "cash", identifier: "" }];
+    entries.forEach((entry) => {
+        const row = templateRow.cloneNode(true);
+        row.querySelector("select").value = entry.method || "cash";
+        row.querySelector("input").value = entry.identifier || "";
+        container.appendChild(row);
+    });
+    updateProfilePaymentMethodRows();
+}
 
 function getInitialsLocal(name) {
     if (!name) return "?";
@@ -22,6 +72,7 @@ async function loadProfile() {
         document.getElementById("full_name").value = user.full_name || "";
         document.getElementById("email").value = user.email || "";
         document.getElementById("phone").value = user.phone || "";
+        renderProfilePaymentMethods(user.payment_methods || []);
         document.getElementById("profileName").textContent = user.full_name;
         document.getElementById("profileInitials").textContent = getInitialsLocal(user.full_name);
 
@@ -60,6 +111,10 @@ async function saveProfile(event) {
         full_name: document.getElementById("full_name").value.trim(),
         email: document.getElementById("email").value.trim(),
         phone: document.getElementById("phone").value.trim(),
+        payment_methods: [...document.querySelectorAll("#profilePaymentMethods .profile-payment-method-row")].map((row) => ({
+            method: row.querySelector("select").value,
+            identifier: row.querySelector("input").value.trim(),
+        })),
     };
 
     try {

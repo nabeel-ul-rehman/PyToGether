@@ -36,6 +36,7 @@ class SettlementPayment(models.Model):
         ("bank_transfer", "Bank Transfer"),
         ("jazzcash", "JazzCash"),
         ("easypaisa", "Easypaisa"),
+        ("raast", "Raast (manual transfer)"),
         ("other", "Other"),
     ]
 
@@ -50,6 +51,7 @@ class SettlementPayment(models.Model):
     )
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     payment_method = models.CharField(max_length=20, choices=PAYMENT_METHOD_CHOICES)
+    payment_details = models.JSONField(default=dict, blank=True)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="pending")
     note = models.CharField(max_length=255, blank=True)
     paid_at = models.DateTimeField(auto_now_add=True)

@@ -2,12 +2,26 @@ from rest_framework import serializers
 from django.contrib.auth import authenticate
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.contrib.auth.password_validation import validate_password
-from .models import User
+from .models import PAYMENT_METHOD_CHOICES, User
+
+
+def validate_payment_method_entries(entries):
+    allowed_methods = {choice[0] for choice in PAYMENT_METHOD_CHOICES}
+    for index, payment_method in enumerate(entries):
+        method = payment_method.get("method")
+        identifier = payment_method.get("identifier", "").strip()
+        if method not in allowed_methods:
+            raise serializers.ValidationError({index: "Choose a valid payment method."})
+        if method != "cash" and not identifier:
+            raise serializers.ValidationError({index: "Enter the account number or ID for this method."})
+        payment_method["identifier"] = identifier
+    return entries
 
 
 class RegisterSerializer(serializers.ModelSerializer):
 
     confirm_password = serializers.CharField(write_only=True)
+    payment_methods = serializers.ListField(child=serializers.DictField(), allow_empty=False)
 
     class Meta:
         model = User
@@ -17,6 +31,8 @@ class RegisterSerializer(serializers.ModelSerializer):
             "full_name",
             "email",
             "phone",
+            "raast_number",
+            "payment_methods",
             "password",
             "confirm_password",
         ]
@@ -38,6 +54,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         return value
 
     def validate(self, attrs):
+        attrs["payment_methods"] = validate_payment_method_entries(attrs.get("payment_methods", []))
 
         if attrs["password"] != attrs["confirm_password"]:
 
@@ -87,6 +104,7 @@ class LoginSerializer(serializers.Serializer):
         return attrs
 
 class ProfileSerializer(serializers.ModelSerializer):
+    payment_methods = serializers.ListField(child=serializers.DictField(), required=False)
 
     class Meta:
         model = User
@@ -95,10 +113,15 @@ class ProfileSerializer(serializers.ModelSerializer):
             "full_name",
             "email",
             "phone",
+            "raast_number",
+            "payment_methods",
             "profile_image",
             "date_joined",
         ]
         read_only_fields = ["id", "date_joined"]
+
+    def validate_payment_methods(self, value):
+        return validate_payment_method_entries(value)
 
     def validate_email(self, value):
         query = User.objects.filter(email=value)

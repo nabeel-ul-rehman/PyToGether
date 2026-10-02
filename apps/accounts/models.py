@@ -3,6 +3,15 @@ from django.contrib.auth.models import (
     AbstractBaseUser, PermissionsMixin
 )
 from .managers import UserManager
+
+
+PAYMENT_METHOD_CHOICES = [
+    ("cash", "Cash"),
+    ("bank_transfer", "Bank Transfer"),
+    ("jazzcash", "JazzCash"),
+    ("easypaisa", "EasyPaisa"),
+    ("raast", "Raast"),
+]
 # Create your models here.
 
 
@@ -20,6 +29,14 @@ class User(AbstractBaseUser, PermissionsMixin):
         max_length=20,
         blank=True
     )
+
+    raast_number = models.CharField(
+        max_length=100,
+        blank=True,
+        help_text="Raast ID or mobile number used to receive payments.",
+    )
+
+    payment_methods = models.JSONField(default=list, blank=True)
 
     profile_image = models.ImageField(
         upload_to="profiles/",

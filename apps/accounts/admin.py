@@ -7,13 +7,13 @@ from .models import User
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
     ordering = ["-created_at"]
-    list_display = ["email", "full_name", "phone", "is_staff", "is_active", "date_joined"]
+    list_display = ["email", "full_name", "phone", "raast_number", "is_staff", "is_active", "date_joined"]
     list_filter = ["is_staff", "is_active"]
-    search_fields = ["email", "full_name", "phone"]
+    search_fields = ["email", "full_name", "phone", "raast_number"]
 
     fieldsets = (
         (None, {"fields": ("email", "password")}),
-        ("Personal info", {"fields": ("full_name", "phone", "profile_image")}),
+        ("Personal info", {"fields": ("full_name", "phone", "raast_number", "profile_image")}),
         ("Permissions", {"fields": ("is_active", "is_staff", "is_superuser", "groups", "user_permissions")}),
         ("Important dates", {"fields": ("last_login",)}),
     )

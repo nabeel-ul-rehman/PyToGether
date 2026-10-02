@@ -35,8 +35,8 @@
                                 <i data-lucide="map-pin" class="w-5 h-5"></i> <span></span>
                             </p>
                         </div>
-                        <button id="leaveTourBtn" class="hidden shrink-0 items-center gap-2.5 rounded-xl border border-white/25 bg-white/15 px-6 py-3.5 text-lg font-semibold backdrop-blur-sm transition hover:border-white/50 hover:bg-white/25 sm:absolute sm:bottom-5 sm:right-8">
-                            <i data-lucide="log-out" class="w-5 h-5"></i> Leave Tour
+                        <button id="leaveTourBtn" class="hidden absolute bottom-4 right-4 shrink-0 items-center gap-1.5 rounded-lg bg-red-700 px-3 py-2 text-sm font-semibold text-white shadow transition hover:bg-red-800 sm:bottom-5 sm:right-8">
+                            <i data-lucide="log-out" class="h-4 w-4"></i> Leave Tour
                         </button>
                     </div>
                 </div>
@@ -111,9 +111,6 @@
                     <div class="w-full rounded-2xl border border-slate-200 bg-white p-5 shadow-card transition hover:border-brand-200 hover:shadow-lg sm:p-6">
                         <div class="mb-5 flex items-center justify-between gap-3">
                             <h2 class="text-xl font-extrabold text-slate-900">Balance Report</h2>
-                            <button id="recordPaymentBtn" class="inline-flex items-center gap-1.5 rounded-xl bg-brand-600 px-3.5 py-2.5 text-xs font-semibold text-white shadow-soft transition hover:bg-brand-700">
-                                <i data-lucide="wallet-cards" class="w-4 h-4"></i> Record payment
-                            </button>
                         </div>
                         <div id="reportSummary" class="rounded-xl border border-slate-200 p-4 space-y-3">
                             <p class="text-slate-400 text-sm">Loading report...</p>
@@ -138,41 +135,72 @@
 <div id="paymentModal" class="hidden fixed inset-0 z-50 overflow-y-auto">
     <div id="paymentModalOverlay" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm"></div>
     <div class="relative min-h-screen flex items-center justify-center p-4">
-        <div class="relative w-full max-w-md rounded-3xl border border-white/70 bg-white p-6 shadow-2xl sm:p-7">
-            <div class="flex items-start justify-between mb-5">
+        <div class="relative max-h-[calc(100dvh-2rem)] w-full max-w-md overflow-y-auto rounded-2xl border border-white/70 bg-white p-4 shadow-xl sm:p-5">
+            <div class="mb-3 flex items-start justify-between">
                 <div>
-                    <h2 class="text-xl font-bold text-slate-900">Record payment</h2>
-                    <p class="text-sm text-slate-500 mt-1">Record a settlement with another member.</p>
+                    <h2 class="text-xl font-bold text-slate-900">Pay member</h2>
+                    <p class="text-sm text-slate-500 mt-1">Transfer the amount, then submit it for confirmation.</p>
                 </div>
                 <button type="button" id="closePaymentModalBtn" class="flex h-9 w-9 items-center justify-center rounded-full text-2xl leading-none text-slate-400 transition hover:bg-slate-100 hover:text-slate-600">&times;</button>
             </div>
-            <form id="paymentForm" class="space-y-4">
-                <div>
-                    <label class="block text-sm font-semibold text-slate-700 mb-1.5">Pay to</label>
-                    <select id="paymentRecipient" required class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-500"></select>
+            <div class="space-y-3">
+                <div class="grid gap-2.5 sm:grid-cols-2">
+                <div class="flex min-h-20 items-center gap-3 rounded-xl border border-slate-200 bg-slate-50/80 px-3 py-2.5">
+                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-lg" aria-hidden="true">👤</span>
+                    <div class="min-w-0">
+                        <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Pay To</p>
+                        <p id="paymentRecipientName" class="mt-0.5 break-words font-bold leading-tight text-slate-900"></p>
+                    </div>
+                    <input id="paymentRecipient" type="hidden" value="">
+                </div>
+                <div class="flex min-h-28 flex-col justify-center rounded-xl border border-brand-100 bg-brand-50/60 px-3 py-2.5">
+                    <p class="text-sm font-bold uppercase tracking-wide text-slate-500">Amount due</p>
+                    <p id="paymentAmountDue" class="mt-1 text-2xl font-bold leading-7 text-slate-900">—</p>
+                    <p class="mt-0.5 text-sm leading-5 text-slate-500">Owed to this person</p>
+                </div>
                 </div>
                 <div>
-                    <label class="block text-sm font-semibold text-slate-700 mb-1.5">Amount (PKR)</label>
-                    <input id="paymentAmount" type="number" min="0.01" step="0.01" required class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-500">
+                    <label class="mb-1.5 block text-sm font-semibold text-slate-700">Select Payment Method</label>
+                    <div id="paymentMethodOptions" class="space-y-1.5">
+                        <button type="button" class="paymentMethodOption flex w-full cursor-pointer items-center gap-2.5 rounded-lg border border-slate-200 bg-white p-2 text-left transition hover:border-brand-300 hover:bg-brand-50" data-method="cash"><span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-100 text-lg" aria-hidden="true">💵</span><span><span class="block text-sm font-semibold text-slate-800">Cash</span><span class="block text-xs leading-4 text-slate-500">Record an in-person cash payment</span></span></button>
+                        <button type="button" class="paymentMethodOption flex w-full cursor-pointer items-center gap-2.5 rounded-lg border border-slate-200 bg-white p-2 text-left transition hover:border-brand-300 hover:bg-brand-50" data-method="bank_transfer"><span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-100 text-lg" aria-hidden="true">🏦</span><span><span class="block text-sm font-semibold text-slate-800">Bank Transfer</span><span class="block text-xs leading-4 text-slate-500">Transfer payment through your bank</span></span></button>
+                        <button type="button" class="paymentMethodOption flex w-full cursor-pointer items-center gap-2.5 rounded-lg border border-slate-200 bg-white p-2 text-left transition hover:border-brand-300 hover:bg-brand-50" data-method="easypaisa"><span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-100 text-lg" aria-hidden="true">📱</span><span><span class="block text-sm font-semibold text-slate-800">EasyPaisa</span><span class="block text-xs leading-4 text-slate-500">Pay using your EasyPaisa account</span></span></button>
+                        <button type="button" class="paymentMethodOption flex w-full cursor-pointer items-center gap-2.5 rounded-lg border border-slate-200 bg-white p-2 text-left transition hover:border-brand-300 hover:bg-brand-50" data-method="jazzcash"><span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-100 text-lg" aria-hidden="true">💰</span><span><span class="block text-sm font-semibold text-slate-800">JazzCash</span><span class="block text-xs leading-4 text-slate-500">Pay using your JazzCash account</span></span></button>
+                        <button type="button" class="paymentMethodOption flex w-full cursor-pointer items-center gap-2.5 rounded-lg border border-slate-200 bg-white p-2 text-left transition hover:border-brand-300 hover:bg-brand-50" data-method="raast"><span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-100 text-lg" aria-hidden="true">🔗</span><span><span class="block text-sm font-semibold text-slate-800">Raast</span><span class="block text-xs leading-4 text-slate-500">Transfer instantly using a Raast ID</span></span></button>
+                    </div>
                 </div>
-                <div>
-                    <label class="block text-sm font-semibold text-slate-700 mb-1.5">Payment method</label>
-                    <select id="paymentMethod" required class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-500">
-                        <option value="cash">Cash</option>
-                        <option value="bank_transfer">Bank Transfer</option>
-                        <option value="jazzcash">JazzCash</option>
-                        <option value="easypaisa">Easypaisa</option>
-                        <option value="other">Other</option>
-                    </select>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Payment details popup, opened after selecting a method -->
+<div id="paymentDetailsModal" class="hidden fixed inset-0 z-[60] overflow-y-auto">
+    <div id="paymentDetailsModalOverlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm"></div>
+    <div class="relative min-h-screen flex items-center justify-center p-4">
+        <div class="relative max-h-[calc(100dvh-2rem)] w-full max-w-md overflow-y-auto rounded-2xl border border-white/70 bg-white p-4 shadow-xl sm:p-5">
+            <div class="mb-3 flex items-start justify-between">
+                <div class="flex items-center gap-3">
+                    <span id="paymentDetailsEmoji" class="flex h-12 w-12 items-center justify-center rounded-full bg-brand-50 text-2xl" aria-hidden="true"></span>
+                    <span><h2 id="paymentDetailsTitle" class="text-lg font-bold text-slate-900">Payment details</h2><p id="paymentDetailsRecipient" class="mt-0.5 text-sm text-slate-500"></p></span>
                 </div>
+                <button type="button" id="closePaymentDetailsBtn" class="flex h-9 w-9 items-center justify-center rounded-full text-2xl leading-none text-slate-400 transition hover:bg-slate-100 hover:text-slate-600">&times;</button>
+            </div>
+            <form id="paymentForm" class="space-y-3">
+                <input id="paymentMethod" type="hidden" value="">
                 <div>
-                    <label class="block text-sm font-semibold text-slate-700 mb-1.5">Note <span class="text-slate-400 font-normal">(optional)</span></label>
-                    <input id="paymentNote" type="text" maxlength="255" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-500">
+                    <label class="mb-1 block text-sm font-semibold text-slate-700">Amount (PKR)</label>
+                    <input id="paymentAmount" type="number" min="0.01" step="0.01" required class="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                </div>
+                <div id="paymentMethodDetails" class="space-y-2 rounded-xl border border-brand-100 bg-brand-50/60 p-3"></div>
+                <div>
+                    <label class="mb-1 block text-sm font-semibold text-slate-700">Note <span class="font-normal text-slate-400">(optional)</span></label>
+                    <input id="paymentNote" type="text" maxlength="255" class="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
                 </div>
                 <div id="paymentFormMessage"></div>
                 <div class="flex gap-3 pt-2">
-                    <button type="submit" id="paymentSubmitBtn" class="flex-1 bg-brand-600 hover:bg-brand-700 text-white font-semibold py-3 rounded-xl transition">Save payment</button>
-                    <button type="button" id="cancelPaymentBtn" class="px-5 py-3 border border-slate-200 rounded-xl text-slate-700 hover:bg-slate-50">Cancel</button>
+                    <button type="submit" id="paymentSubmitBtn" class="flex-1 rounded-xl bg-brand-600 py-2.5 font-semibold text-white transition hover:bg-brand-700">Submit payment</button>
+                    <button type="button" id="cancelPaymentBtn" class="rounded-xl border border-slate-200 px-5 py-2.5 text-slate-700 hover:bg-slate-50">Back</button>
                 </div>
             </form>
         </div>
@@ -273,10 +301,31 @@
     </div>
 </div>
 
+<div id="leaveTourModal" class="hidden fixed inset-0 z-50 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="leaveTourTitle">
+    <div id="leaveTourOverlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm"></div>
+    <div class="relative flex min-h-screen items-center justify-center p-4">
+        <div class="relative w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl">
+            <div class="flex items-start gap-3">
+                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-100 text-red-700">
+                    <i data-lucide="triangle-alert" class="h-5 w-5"></i>
+                </div>
+                <div>
+                    <h2 id="leaveTourTitle" class="text-lg font-bold text-slate-900">Leave this tour?</h2>
+                    <p class="mt-1 text-sm leading-5 text-slate-600">You’ll lose access to this tour and its shared details. You’ll need the join code to come back.</p>
+                </div>
+            </div>
+            <div class="mt-6 flex justify-end gap-3">
+                <button type="button" id="cancelLeaveTourBtn" class="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">Stay</button>
+                <button type="button" id="confirmLeaveTourBtn" class="rounded-lg bg-red-700 px-4 py-2 text-sm font-semibold text-white hover:bg-red-800">Leave tour</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <input type="hidden" id="tourId" value="{{ tour_id }}">
 
 {% endblock %}
 
 {% block scripts %}
-<script src="{% static 'js/tour-detail.js' %}?v=3"></script>
+<script src="{% static 'js/tour-detail.js' %}?v=7"></script>
 {% endblock %}

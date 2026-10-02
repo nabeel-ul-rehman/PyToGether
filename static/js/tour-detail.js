@@ -66,6 +66,11 @@ function escapeHtml(value) {
     return div.innerHTML;
 }
 
+function capitalizeInitial(value) {
+    const text = String(value || "");
+    return text ? `${text.charAt(0).toLocaleUpperCase()}${text.slice(1)}` : "";
+}
+
 function getMediaUrl(url) {
     return new URL(url, window.location.origin).href;
 }
@@ -185,12 +190,21 @@ async function loadMembers() {
                     member.role === "creator"
                         ? `<span class="text-xs font-bold text-brand-700 bg-brand-100 px-2 py-0.5 rounded-full">Creator</span>`
                         : `<span class="text-xs font-semibold text-slate-400">Member</span>`;
+                const paymentLabels = { cash: "Cash", bank_transfer: "Bank Transfer", jazzcash: "JazzCash", easypaisa: "EasyPaisa", raast: "Raast" };
+                const paymentMethods = member.payment_methods || [];
+                if (!paymentMethods.some((entry) => entry.method === "raast") && member.raast_number) {
+                    paymentMethods.push({ method: "raast", identifier: member.raast_number });
+                }
+                const paymentDetails = paymentMethods.length
+                    ? `<div class="mt-2 space-y-1">${paymentMethods.map((entry) => `<p class="text-xs text-slate-500"><span class="font-semibold text-slate-600">${escapeHtml(paymentLabels[entry.method] || entry.method)}:</span> ${escapeHtml(entry.identifier || "Cash payment")}</p>`).join("")}</div>`
+                    : `<p class="mt-2 text-xs text-slate-400">No payment details added</p>`;
                 return `
-                <div class="flex items-center gap-3">
+                <div class="flex items-start gap-3">
                     <div class="w-9 h-9 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center font-bold text-xs shrink-0">${escapeHtml(initials)}</div>
                     <div class="min-w-0 flex-1">
                         <p class="text-sm font-semibold text-slate-800 truncate">${escapeHtml(member.full_name)}</p>
                         <p class="text-xs text-slate-400 truncate">${escapeHtml(member.email)}</p>
+                        ${paymentDetails}
                     </div>
                     ${roleBadge}
                 </div>`;
@@ -349,36 +363,133 @@ function setupExpenseModal() {
 
 function setupPaymentModal() {
     const modal = document.getElementById("paymentModal");
+    const detailsModal = document.getElementById("paymentDetailsModal");
     const form = document.getElementById("paymentForm");
     const recipientSelect = document.getElementById("paymentRecipient");
+    const methodSelect = document.getElementById("paymentMethod");
+    const methodDetails = document.getElementById("paymentMethodDetails");
+
+    function updatePaymentMethodDetails() {
+        const method = methodSelect.value;
+        const recipient = currentReport?.members.find((member) => String(member.user_id) === recipientSelect.value);
+        const labels = {
+            raast: { title: "Raast", description: "Send to the recipient's Raast ID, then enter your transfer details.", reference: "Raast transaction ID", sender: true, emoji: "🔗" },
+            bank_transfer: { title: "Bank Transfer", description: "Complete your bank transfer, then enter its reference.", reference: "Bank transfer reference", sender: false, emoji: "🏦" },
+            jazzcash: { title: "JazzCash", description: "Complete your JazzCash payment, then enter its transaction ID.", reference: "JazzCash transaction ID", sender: false, emoji: "💰" },
+            easypaisa: { title: "EasyPaisa", description: "Complete your EasyPaisa payment, then enter its transaction ID.", reference: "EasyPaisa transaction ID", sender: false, emoji: "📱" },
+            cash: { title: "Cash", description: "Enter a receipt or note after paying in person.", reference: "Receipt or payment note", sender: false, emoji: "💵" },
+        };
+        const config = labels[method];
+        if (!config) {
+            methodDetails.innerHTML = "";
+            return;
+        }
+
+        const recipientMethod = recipient?.payment_methods?.find((entry) => entry.method === method);
+        const recipientIdentifier = recipientMethod?.identifier || (method === "raast" ? recipient?.raast_number : "");
+        const recipientInfo = recipientIdentifier
+            ? `<p class="text-sm text-slate-700">Pay <strong>${escapeHtml(recipient?.full_name || "selected member")}</strong> at <strong>${escapeHtml(recipientIdentifier)}</strong>.</p>`
+            : method === "cash" ? "" : `<p class="text-sm text-amber-700">No ${escapeHtml(config.title)} account number or ID is on this member's profile.</p>`;
+        const senderField = config.sender
+            ? `<div><label for="paymentSenderAccount" class="mb-1 block text-sm font-semibold text-slate-600">Your Raast number</label><input id="paymentSenderAccount" type="text" required maxlength="100" placeholder="Number or Raast ID you paid from" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"></div>`
+            : "";
+        const referenceRequired = method !== "cash";
+        const referenceField = `<div class="${config.sender ? "" : "sm:col-span-2"}"><label for="paymentTransactionReference" class="mb-1 block text-sm font-semibold text-slate-600">${config.reference}${referenceRequired ? " (required)" : " (optional)"}</label><input id="paymentTransactionReference" type="text" maxlength="120" ${referenceRequired ? "required" : ""} placeholder="Enter reference or transaction ID" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"></div>`;
+        methodDetails.innerHTML = `
+            <p class="text-sm font-bold text-slate-800">${config.title}</p>
+            <p class="text-xs leading-5 text-slate-500">${config.description}</p>
+            ${recipientInfo}
+            <div class="grid gap-2 sm:grid-cols-2">${senderField}${referenceField}</div>`;
+        document.querySelectorAll(".paymentMethodOption").forEach((option) => {
+            const selected = option.dataset.method === method;
+            option.classList.toggle("border-brand-600", selected);
+            option.classList.toggle("bg-brand-50", selected);
+            option.classList.toggle("text-brand-700", selected);
+            option.classList.toggle("ring-2", selected);
+            option.classList.toggle("ring-brand-200", selected);
+        });
+    }
 
     function close() {
         modal.classList.add("hidden");
+        detailsModal.classList.add("hidden");
         document.body.classList.remove("overflow-hidden");
     }
 
-    document.getElementById("recordPaymentBtn").addEventListener("click", () => {
+    function openPayment(recipientId, amount) {
         if (!currentReport) {
             showToast("Balance report is still loading.", "error");
             return;
         }
 
-        const recipients = currentReport.members.filter((member) => member.user_id !== currentUserId);
-        recipientSelect.innerHTML = recipients.length
-            ? recipients
-                .map((member) => `<option value="${member.user_id}">${escapeHtml(member.full_name || member.email)}</option>`)
-                .join("")
-            : '<option value="">No other members available</option>';
+        const recipients = currentReport.members
+            .filter((member) => member.user_id !== currentUserId && Number(member.balance) > 0)
+            .sort((a, b) => Number(b.balance) - Number(a.balance));
+        const recipient = recipients.find((member) => String(member.user_id) === String(recipientId)) || recipients[0];
+        recipientSelect.value = recipient?.user_id || "";
 
+        const updateRecipientRaast = () => {
+            const recipientName = document.getElementById("paymentRecipientName");
+            const displayName = capitalizeInitial(recipient?.full_name || recipient?.email || "No eligible receiver");
+            recipientName.textContent = displayName;
+            recipientName.classList.remove("text-xl", "text-lg", "text-base");
+            recipientName.classList.add(displayName.length <= 16 ? "text-xl" : displayName.length <= 28 ? "text-lg" : "text-base");
+            if (recipient && !amount) {
+                const owingMember = currentReport.members.find((member) => member.user_id === currentUserId);
+                const owedAmount = Math.min(-Number(owingMember?.balance || 0), Number(recipient.balance));
+                document.getElementById("paymentAmount").value = Math.max(0, owedAmount).toFixed(2);
+                document.getElementById("paymentAmountDue").textContent = formatMoney(Math.max(0, owedAmount));
+            } else if (recipient) {
+                document.getElementById("paymentAmountDue").textContent = formatMoney(Math.min(Number(amount), Number(recipient.balance)));
+            } else {
+                document.getElementById("paymentRecipientName").textContent = "No eligible receiver";
+                document.getElementById("paymentAmountDue").textContent = formatMoney(0);
+            }
+        };
         form.reset();
+        methodSelect.value = "";
+        document.querySelectorAll(".paymentMethodOption").forEach((option) => {
+            option.classList.remove("border-brand-600", "bg-brand-50", "text-brand-700", "ring-2", "ring-brand-200");
+        });
+        recipientSelect.value = recipient?.user_id || "";
+        if (amount) document.getElementById("paymentAmount").value = Number(amount).toFixed(2);
+        updateRecipientRaast();
         document.getElementById("paymentFormMessage").innerHTML = "";
+        detailsModal.classList.add("hidden");
         modal.classList.remove("hidden");
         document.body.classList.add("overflow-hidden");
+    }
+
+    document.getElementById("reportSummary").addEventListener("click", (event) => {
+        const button = event.target.closest(".payMemberBtn");
+        if (button) openPayment(button.dataset.recipient, button.dataset.amount);
     });
 
     document.getElementById("closePaymentModalBtn").addEventListener("click", close);
     document.getElementById("cancelPaymentBtn").addEventListener("click", close);
     document.getElementById("paymentModalOverlay").addEventListener("click", close);
+    document.getElementById("paymentMethodOptions").addEventListener("click", (event) => {
+        const option = event.target.closest(".paymentMethodOption");
+        if (!option) return;
+        methodSelect.value = option.dataset.method;
+        updatePaymentMethodDetails();
+        const methodNames = { cash: "Cash", bank_transfer: "Bank Transfer", jazzcash: "JazzCash", easypaisa: "EasyPaisa", raast: "Raast" };
+        const methodEmojis = { cash: "💵", bank_transfer: "🏦", jazzcash: "💰", easypaisa: "📱", raast: "🔗" };
+        const recipient = currentReport?.members.find((member) => String(member.user_id) === recipientSelect.value);
+        document.getElementById("paymentDetailsTitle").textContent = `${methodNames[methodSelect.value]} payment`;
+        document.getElementById("paymentDetailsEmoji").textContent = methodEmojis[methodSelect.value];
+        document.getElementById("paymentDetailsRecipient").textContent = `Paying ${recipient?.full_name || "selected member"}`;
+        document.getElementById("paymentFormMessage").innerHTML = "";
+        modal.classList.add("hidden");
+        detailsModal.classList.remove("hidden");
+        if (window.lucide) lucide.createIcons();
+    });
+    document.getElementById("closePaymentDetailsBtn").addEventListener("click", close);
+    document.getElementById("paymentDetailsModalOverlay").addEventListener("click", close);
+    document.getElementById("cancelPaymentBtn").addEventListener("click", () => {
+        detailsModal.classList.add("hidden");
+        modal.classList.remove("hidden");
+    });
 
     form.addEventListener("submit", async (event) => {
         event.preventDefault();
@@ -387,6 +498,10 @@ function setupPaymentModal() {
             recipient: recipientSelect.value,
             amount: document.getElementById("paymentAmount").value,
             payment_method: document.getElementById("paymentMethod").value,
+            payment_details: {
+                sender_account: document.getElementById("paymentSenderAccount")?.value.trim() || "",
+                transaction_reference: document.getElementById("paymentTransactionReference")?.value.trim() || "",
+            },
             note: document.getElementById("paymentNote").value.trim(),
         };
 
@@ -400,18 +515,23 @@ function setupPaymentModal() {
             });
             const data = await response.json();
             if (!response.ok) {
-                throw new Error(data.recipient?.[0] || data.amount?.[0] || "Unable to record payment.");
+                throw new Error(
+                    data.recipient?.[0] || data.amount?.[0] ||
+                    data.payment_details?.sender_account?.[0] ||
+                    data.payment_details?.transaction_reference?.[0] ||
+                    "Unable to record payment."
+                );
             }
 
             close();
-            showToast("Payment recorded. Balances have been updated.");
+            showToast("Payment recorded. Balances update after the recipient confirms it.");
             await loadReport();
         } catch (error) {
             document.getElementById("paymentFormMessage").innerHTML =
                 `<div class="text-sm text-red-600">${escapeHtml(error.message)}</div>`;
         } finally {
             submitButton.disabled = false;
-            submitButton.textContent = "Save payment";
+            submitButton.textContent = "Submit payment";
         }
     });
 }
@@ -457,10 +577,15 @@ async function loadReport() {
         const report = await response.json();
         currentReport = report;
 
+        const currentMember = report.members.find((member) => member.user_id === currentUserId);
+        const amountOwed = currentMember ? Math.max(0, -Number(currentMember.balance)) : 0;
         const rows = report.members
             .map((member) => {
                 const balanceClass = member.balance > 0 ? "text-emerald-600" : member.balance < 0 ? "text-red-500" : "text-slate-400";
                 const balanceLabel = member.balance > 0 ? "is owed" : member.balance < 0 ? "owes" : "settled up";
+                const payButton = member.user_id === currentUserId && amountOwed > 0
+                    ? `<button type="button" class="payMemberBtn rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-semibold uppercase text-white shadow-soft transition hover:bg-brand-700" aria-label="Pay your balance">PAY</button>`
+                    : "";
                 return `
                 <div class="flex items-center justify-between text-sm py-2 border-b border-slate-50 last:border-0">
                     <div>
@@ -468,8 +593,11 @@ async function loadReport() {
                         <p class="text-xs text-slate-400">paid ${formatMoney(member.paid)} of ${formatMoney(member.share)} share</p>
                     </div>
                     <div class="text-right">
-                        <p class="${balanceClass} font-bold">${formatMoney(Math.abs(member.balance))}</p>
-                        <p class="text-xs text-slate-400">${balanceLabel}</p>
+                        <div class="flex items-center justify-end gap-2">
+                            <p class="${balanceClass} font-bold">${formatMoney(Math.abs(member.balance))}</p>
+                            ${payButton}
+                        </div>
+                        <p class="text-xs ${member.balance < 0 ? "text-red-500" : "text-slate-400"}">${balanceLabel}</p>
                     </div>
                 </div>`;
             })
@@ -493,6 +621,11 @@ async function loadReport() {
                                     <button type="button" class="reviewPaymentBtn text-brand-700 font-bold hover:underline" data-payment-id="${payment.id}" data-action="approved">Approve</button>
                                     <button type="button" class="reviewPaymentBtn text-red-600 font-bold hover:underline" data-payment-id="${payment.id}" data-action="rejected">Reject</button>` : ""}
                             </div>
+                            ${payment.payment_details?.sender_account || payment.payment_details?.transaction_reference ? `
+                                <p class="mt-1 text-slate-500">
+                                    ${payment.payment_details.sender_account ? `From: ${escapeHtml(payment.payment_details.sender_account)} ` : ""}
+                                    ${payment.payment_details.transaction_reference ? `&middot; Ref: ${escapeHtml(payment.payment_details.transaction_reference)}` : ""}
+                                </p>` : ""}
                         </div>`
                     )
                     .join("")}
@@ -562,20 +695,37 @@ function setupOtherActions() {
     document.getElementById("closeShareJoinCodeBtn").addEventListener("click", closeShareModal);
     document.getElementById("shareJoinCodeOverlay").addEventListener("click", closeShareModal);
 
-    document.getElementById("leaveTourBtn").addEventListener("click", async () => {
-        if (!confirm("Leave this tour? You'll need the join code again to rejoin.")) return;
-
+    const leaveModal = document.getElementById("leaveTourModal");
+    const closeLeaveModal = () => {
+        leaveModal.classList.add("hidden");
+        document.body.classList.remove("overflow-hidden");
+    };
+    document.getElementById("leaveTourBtn").addEventListener("click", () => {
+        leaveModal.classList.remove("hidden");
+        document.body.classList.add("overflow-hidden");
+    });
+    document.getElementById("cancelLeaveTourBtn").addEventListener("click", closeLeaveModal);
+    document.getElementById("leaveTourOverlay").addEventListener("click", closeLeaveModal);
+    document.getElementById("confirmLeaveTourBtn").addEventListener("click", async (event) => {
+        const confirmButton = event.currentTarget;
+        confirmButton.disabled = true;
+        confirmButton.textContent = "Leaving...";
         try {
             const response = await apiRequest(`/api/tours/${tourId}/leave/`, { method: "POST" });
             if (response.ok) {
                 window.location.href = "/tours/";
             } else {
                 const data = await response.json();
+                closeLeaveModal();
                 showToast(data.detail || "Unable to leave this tour.", "error");
             }
         } catch (error) {
             console.error(error);
+            closeLeaveModal();
             showToast("Unable to leave this tour.", "error");
+        } finally {
+            confirmButton.disabled = false;
+            confirmButton.textContent = "Leave tour";
         }
     });
 

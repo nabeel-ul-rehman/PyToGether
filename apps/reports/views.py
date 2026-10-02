@@ -64,6 +64,8 @@ class TourReportAPIView(APIView):
                     "user_id": member.user_id,
                     "full_name": member.user.full_name,
                     "email": member.user.email,
+                    "raast_number": member.user.raast_number,
+                    "payment_methods": member.user.payment_methods,
                     "role": member.role,
                     "paid": _round(paid),
                     "share": per_member_share,
@@ -100,6 +102,7 @@ class TourReportAPIView(APIView):
                     "payer_name": payment.payer.full_name,
                     "amount": payment.amount,
                     "payment_method": payment.payment_method,
+                    "payment_details": payment.payment_details,
                     "payment_method_display": payment.get_payment_method_display(),
                     "status": payment.status,
                     "status_display": payment.get_status_display(),
@@ -142,6 +145,7 @@ class TourPaymentCreateAPIView(APIView):
             recipient_id=recipient_id,
             amount=amount,
             payment_method=serializer.validated_data["payment_method"],
+            payment_details=serializer.validated_data.get("payment_details", {}),
             note=serializer.validated_data.get("note", ""),
         )
         return Response(
@@ -153,6 +157,7 @@ class TourPaymentCreateAPIView(APIView):
                     "payer_name": payment.payer.full_name,
                     "amount": payment.amount,
                     "payment_method": payment.payment_method,
+                    "payment_details": payment.payment_details,
                     "payment_method_display": payment.get_payment_method_display(),
                     "status": payment.status,
                     "status_display": payment.get_status_display(),

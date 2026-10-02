@@ -13,6 +13,7 @@ from .serializers import (
     ProfileSerializer,
     RegisterSerializer,
 )
+from .models import PAYMENT_METHOD_CHOICES
 
 
 # ---------------------------------------------------------------------------
@@ -21,6 +22,11 @@ from .serializers import (
 
 class RegisterPageView(TemplateView):
     template_name = "auth/register.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["payment_method_choices"] = PAYMENT_METHOD_CHOICES
+        return context
 
 
 class LoginPageView(TemplateView):
@@ -33,6 +39,11 @@ class DashboardPageView(TemplateView):
 
 class ProfilePageView(TemplateView):
     template_name = "auth/profile.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["payment_method_choices"] = PAYMENT_METHOD_CHOICES
+        return context
 
 
 # ---------------------------------------------------------------------------

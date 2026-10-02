@@ -15,10 +15,12 @@ class RelativeMediaImageField(serializers.ImageField):
 class TourMemberSerializer(serializers.ModelSerializer):
     full_name = serializers.CharField(source="user.full_name", read_only=True)
     email = serializers.CharField(source="user.email", read_only=True)
+    payment_methods = serializers.ListField(source="user.payment_methods", read_only=True)
+    raast_number = serializers.CharField(source="user.raast_number", read_only=True)
 
     class Meta:
         model = TourMember
-        fields = ["id", "user", "full_name", "email", "role", "joined_at"]
+        fields = ["id", "user", "full_name", "email", "role", "joined_at", "payment_methods", "raast_number"]
         read_only_fields = fields
 
 

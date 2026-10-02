@@ -44,6 +44,22 @@
                     <input id="phone" type="text"
                         class="min-h-11 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm transition focus:border-transparent focus:outline-none focus:ring-2 focus:ring-brand-500 sm:px-4 sm:py-3 sm:text-base">
                 </div>
+                <fieldset class="border-t border-slate-100 pt-5">
+                    <legend class="text-sm font-bold text-slate-800">Payment methods</legend>
+                    <p class="mb-3 mt-1 text-xs text-slate-500">Add the payment methods you accept and their account number or ID.</p>
+                    <div id="profilePaymentMethods" class="space-y-3">
+                        <div class="profile-payment-method-row grid grid-cols-1 gap-2 sm:grid-cols-2">
+                            <select class="profile-payment-method-select min-h-11 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                                {% for value, label in payment_method_choices %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
+                            </select>
+                            <div class="flex gap-2">
+                                <input type="text" class="profile-payment-identifier min-h-11 w-full min-w-0 rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="Account number or ID">
+                                <button type="button" class="remove-profile-payment-method hidden rounded-lg px-3 text-sm font-semibold text-red-600 hover:bg-red-50" aria-label="Remove payment method">Remove</button>
+                            </div>
+                        </div>
+                    </div>
+                    <button id="addProfilePaymentMethod" type="button" class="mt-3 text-sm font-semibold text-brand-700 hover:underline">+ Add another method</button>
+                </fieldset>
                 <div id="message"></div>
                 <button id="saveBtn" class="min-h-11 w-full rounded-xl bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white shadow-soft transition hover:bg-slate-800 sm:w-auto sm:px-6 sm:py-3 sm:text-base">
                     Save Changes
@@ -84,5 +100,5 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="{% static 'js/profile.js' %}?v=2"></script>
+<script src="{% static 'js/profile.js' %}?v=3"></script>
 {% endblock %}
