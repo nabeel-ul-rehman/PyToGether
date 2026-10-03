@@ -43,6 +43,23 @@ python manage.py runserver
 
 Visit `http://127.0.0.1:8000/`.
 
+### Stripe card settlements
+
+Set `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` from your Stripe account.
+Install requirements, then configure a webhook endpoint at
+`/api/payments/stripe/webhook/` for `checkout.session.completed`,
+`checkout.session.async_payment_succeeded`, `checkout.session.async_payment_failed`,
+and `checkout.session.expired`. Apply migrations before use. Stripe Checkout
+hosts the card form; a verified webhook records successful card charges, and
+the recipient still needs to confirm the settlement. Use Stripe test keys and
+test cards during development.
+
+This integration charges the configured Stripe account in PKR. It does not
+transfer funds to the tour recipient; arrange that payout separately and only
+ask the recipient to approve once they have received it. Stripe Connect
+onboarding and payout routing are not implemented. A business must also be established in a country
+where Stripe accounts are available before processing live payments.
+
 ## Deploying to Railway from GitHub
 
 This repository includes a Railpack configuration. Railway installs

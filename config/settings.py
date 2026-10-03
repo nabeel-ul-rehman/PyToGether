@@ -27,6 +27,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 DEBUG = config('DEBUG', default="false").strip().lower() in {"1", "true", "yes", "on"}
 
 SECRET_KEY = config('SECRET_KEY', default="").strip()
+STRIPE_SECRET_KEY = config("STRIPE_SECRET_KEY", default="").strip()
+STRIPE_WEBHOOK_SECRET = config("STRIPE_WEBHOOK_SECRET", default="").strip()
 if not SECRET_KEY:
     if not DEBUG:
         raise ImproperlyConfigured("Set a strong SECRET_KEY environment variable for production.")

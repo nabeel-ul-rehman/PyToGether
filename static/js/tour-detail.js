@@ -42,6 +42,16 @@ async function init() {
 
     await Promise.allSettled([loadMembers(), loadExpenses(), loadReport()]);
 
+    const paymentResult = new URLSearchParams(window.location.search).get("payment");
+    if (paymentResult === "success") showToast("Card payment submitted. Your balance updates after Stripe confirms it.");
+    if (paymentResult === "cancelled") showToast("Card payment was cancelled.", "error");
+    if (paymentResult) {
+        const url = new URL(window.location.href);
+        url.searchParams.delete("payment");
+        url.searchParams.delete("session_id");
+        window.history.replaceState({}, "", url);
+    }
+
     if (window.lucide) lucide.createIcons();
 }
 
@@ -468,9 +478,33 @@ function setupPaymentModal() {
     document.getElementById("closePaymentModalBtn").addEventListener("click", close);
     document.getElementById("cancelPaymentBtn").addEventListener("click", close);
     document.getElementById("paymentModalOverlay").addEventListener("click", close);
-    document.getElementById("paymentMethodOptions").addEventListener("click", (event) => {
+    document.getElementById("paymentMethodOptions").addEventListener("click", async (event) => {
         const option = event.target.closest(".paymentMethodOption");
         if (!option) return;
+        if (option.dataset.method === "stripe_card") {
+            const recipient = recipientSelect.value;
+            const amount = document.getElementById("paymentAmount").value;
+            if (!recipient || !amount || Number(amount) <= 0) {
+                showToast("Choose a recipient and enter a valid amount first.", "error");
+                return;
+            }
+            option.disabled = true;
+            try {
+                const response = await apiRequest(`/api/tours/${tourId}/payments/stripe-checkout/`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ recipient, amount, note: document.getElementById("paymentNote").value.trim() }),
+                });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.detail || "Unable to start card payment.");
+                window.location.assign(data.checkout_url);
+            } catch (error) {
+                showToast(error.message, "error");
+            } finally {
+                option.disabled = false;
+            }
+            return;
+        }
         methodSelect.value = option.dataset.method;
         updatePaymentMethodDetails();
         const methodNames = { cash: "Cash", bank_transfer: "Bank Transfer", jazzcash: "JazzCash", easypaisa: "EasyPaisa", raast: "Raast" };
@@ -621,6 +655,7 @@ async function loadReport() {
                                     <button type="button" class="reviewPaymentBtn text-brand-700 font-bold hover:underline" data-payment-id="${payment.id}" data-action="approved">Approve</button>
                                     <button type="button" class="reviewPaymentBtn text-red-600 font-bold hover:underline" data-payment-id="${payment.id}" data-action="rejected">Reject</button>` : ""}
                             </div>
+                            ${payment.payment_method === "stripe_card" && payment.payment_details?.card_payment_received ? `<p class="mt-1 text-amber-700">Stripe charged the PayTogether account. The recipient must confirm after receiving their payout.</p>` : ""}
                             ${payment.payment_details?.sender_account || payment.payment_details?.transaction_reference ? `
                                 <p class="mt-1 text-slate-500">
                                     ${payment.payment_details.sender_account ? `From: ${escapeHtml(payment.payment_details.sender_account)} ` : ""}

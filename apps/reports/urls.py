@@ -5,6 +5,8 @@ from .views import (
     TourPaymentApprovalAPIView,
     TourPaymentCreateAPIView,
     TourReportAPIView,
+    TourStripeCheckoutAPIView,
+    stripe_webhook,
 )
 
 app_name = "reports"
@@ -25,6 +27,8 @@ urlpatterns = [
         TourPaymentCreateAPIView.as_view(),
         name="tour-payment-create",
     ),
+    path("api/tours/<int:tour_id>/payments/stripe-checkout/", TourStripeCheckoutAPIView.as_view(), name="tour-stripe-checkout"),
+    path("api/payments/stripe/webhook/", stripe_webhook, name="stripe-webhook"),
     path(
         "api/tours/<int:tour_id>/payments/<int:payment_id>/review/",
         TourPaymentApprovalAPIView.as_view(),

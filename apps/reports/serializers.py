@@ -20,7 +20,7 @@ class SettlementPaymentSerializer(serializers.Serializer):
     payer_name = serializers.CharField(read_only=True)
     amount = serializers.DecimalField(max_digits=10, decimal_places=2)
     payment_method = serializers.ChoiceField(
-        choices=["cash", "bank_transfer", "jazzcash", "easypaisa", "raast", "other"]
+        choices=["cash", "bank_transfer", "jazzcash", "easypaisa", "raast", "other", "stripe_card"]
     )
     payment_details = serializers.JSONField(required=False, default=dict)
     payment_method_display = serializers.CharField(read_only=True)
