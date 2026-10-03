@@ -163,15 +163,45 @@
                     <label class="mb-1.5 block text-sm font-semibold text-slate-700">Select Payment Method</label>
                     <div id="paymentMethodOptions" class="space-y-1.5">
                         <button type="button" class="paymentMethodOption flex w-full cursor-pointer items-center gap-2.5 rounded-lg border border-slate-200 bg-white p-2 text-left transition hover:border-brand-300 hover:bg-brand-50" data-method="cash"><span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-100 text-lg" aria-hidden="true">💵</span><span><span class="block text-sm font-semibold text-slate-800">Cash</span><span class="block text-xs leading-4 text-slate-500">Record an in-person cash payment</span></span></button>
-                        <button type="button" class="paymentMethodOption flex w-full cursor-pointer items-center gap-2.5 rounded-lg border border-slate-200 bg-white p-2 text-left transition hover:border-brand-300 hover:bg-brand-50" data-method="bank_transfer"><span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-100 text-lg" aria-hidden="true">🏦</span><span><span class="block text-sm font-semibold text-slate-800">Bank Transfer</span><span class="block text-xs leading-4 text-slate-500">Transfer payment through your bank</span></span></button>
-                        <button type="button" class="paymentMethodOption flex w-full cursor-pointer items-center gap-2.5 rounded-lg border border-slate-200 bg-white p-2 text-left transition hover:border-brand-300 hover:bg-brand-50" data-method="easypaisa"><span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-100 text-lg" aria-hidden="true">📱</span><span><span class="block text-sm font-semibold text-slate-800">EasyPaisa</span><span class="block text-xs leading-4 text-slate-500">Pay using your EasyPaisa account</span></span></button>
-                        <button type="button" class="paymentMethodOption flex w-full cursor-pointer items-center gap-2.5 rounded-lg border border-slate-200 bg-white p-2 text-left transition hover:border-brand-300 hover:bg-brand-50" data-method="jazzcash"><span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-100 text-lg" aria-hidden="true">💰</span><span><span class="block text-sm font-semibold text-slate-800">JazzCash</span><span class="block text-xs leading-4 text-slate-500">Pay using your JazzCash account</span></span></button>
-                        <button type="button" class="paymentMethodOption flex w-full cursor-pointer items-center gap-2.5 rounded-lg border border-slate-200 bg-white p-2 text-left transition hover:border-brand-300 hover:bg-brand-50" data-method="raast"><span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-100 text-lg" aria-hidden="true">🔗</span><span><span class="block text-sm font-semibold text-slate-800">Raast</span><span class="block text-xs leading-4 text-slate-500">Transfer instantly using a Raast ID</span></span></button>
+                        <button type="button" class="paymentMethodOption flex w-full cursor-pointer items-center gap-2.5 rounded-lg border border-slate-200 bg-white p-2 text-left transition hover:border-brand-300 hover:bg-brand-50" data-method="raast"><span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-100 text-lg" aria-hidden="true">🔗</span><span><span class="block text-sm font-semibold text-slate-800">Raast / Bank / JazzCash / Easypaisa</span><span class="block text-xs leading-4 text-slate-500">Send to the member's saved bank or wallet details</span></span></button>
                         <button type="button" class="paymentMethodOption flex w-full items-center gap-2.5 rounded-lg border border-slate-200 bg-white p-2 text-left hover:border-brand-300 hover:bg-brand-50" data-method="stripe_card"><span aria-hidden="true">💳</span><span><span class="block text-sm font-semibold text-slate-800">Credit or debit card</span><span class="block text-xs text-slate-500">Stripe checkout; recipient payout is separate</span></span></button>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
+</div>
+
+<!-- Raast source picker -->
+<div id="raastMethodModal" class="hidden fixed inset-0 z-[70] overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="raastMethodTitle">
+    <button id="raastMethodOverlay" type="button" class="fixed inset-0 h-full w-full cursor-default bg-slate-950/55 backdrop-blur-sm" aria-label="Close Raast payment method picker"></button>
+    <div class="relative flex min-h-full items-center justify-center p-3 sm:p-5">
+        <section class="relative w-full max-w-2xl rounded-2xl border border-white/70 bg-white p-4 shadow-2xl sm:p-6">
+            <div class="mb-4 flex items-start justify-between gap-4">
+                <div>
+                    <h2 id="raastMethodTitle" class="text-lg font-extrabold text-slate-900 sm:text-xl">Choose Your Raast Payment Method</h2>
+                    <p class="mt-1 text-sm text-slate-500">Select the account or wallet you want to use for this payment.</p>
+                </div>
+                <button id="closeRaastMethodModal" type="button" class="-mr-1 -mt-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-2xl leading-none text-slate-400 transition hover:bg-slate-100 hover:text-slate-700" aria-label="Close">&times;</button>
+            </div>
+            <div id="raastSourceOptions" class="grid gap-2.5 sm:grid-cols-3">
+                <button type="button" class="raastSourceOption group flex min-h-28 items-start gap-3 rounded-xl border border-slate-200 bg-white p-3 text-left transition duration-150 hover:-translate-y-0.5 hover:border-emerald-300 hover:bg-emerald-50/50 hover:shadow-sm sm:min-h-36 sm:flex-col sm:gap-2.5 sm:p-4" data-source="jazzcash" aria-pressed="false">
+                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700 transition group-hover:bg-emerald-100"><i data-lucide="wallet-cards" class="h-5 w-5"></i></span>
+                    <span><span class="block text-sm font-bold text-slate-800">JazzCash</span><span class="mt-0.5 block text-xs leading-5 text-slate-500">Pay using JazzCash</span><span class="block text-xs leading-4 text-slate-400">Use your JazzCash account</span></span>
+                </button>
+                <button type="button" class="raastSourceOption group flex min-h-28 items-start gap-3 rounded-xl border border-slate-200 bg-white p-3 text-left transition duration-150 hover:-translate-y-0.5 hover:border-green-300 hover:bg-green-50/50 hover:shadow-sm sm:min-h-36 sm:flex-col sm:gap-2.5 sm:p-4" data-source="easypaisa" aria-pressed="false">
+                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-green-50 text-green-700 transition group-hover:bg-green-100"><i data-lucide="smartphone" class="h-5 w-5"></i></span>
+                    <span><span class="block text-sm font-bold text-slate-800">Easypaisa</span><span class="mt-0.5 block text-xs leading-5 text-slate-500">Pay using Easypaisa</span><span class="block text-xs leading-4 text-slate-400">Use your Easypaisa account</span></span>
+                </button>
+                <button type="button" class="raastSourceOption group flex min-h-28 items-start gap-3 rounded-xl border border-slate-200 bg-white p-3 text-left transition duration-150 hover:-translate-y-0.5 hover:border-blue-300 hover:bg-blue-50/50 hover:shadow-sm sm:min-h-36 sm:flex-col sm:gap-2.5 sm:p-4" data-source="bank_account" aria-pressed="false">
+                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-700 transition group-hover:bg-blue-100"><i data-lucide="landmark" class="h-5 w-5"></i></span>
+                    <span><span class="block text-sm font-bold text-slate-800">Bank Account</span><span class="mt-0.5 block text-xs leading-5 text-slate-500">Pay using Bank Account</span><span class="block text-xs leading-4 text-slate-400">Use your bank account through Raast</span></span>
+                </button>
+            </div>
+            <div class="mt-4 flex items-center justify-end border-t border-slate-100 pt-3">
+                <button id="continueRaastPayment" type="button" disabled class="inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-brand-600 px-6 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto">Continue</button>
+            </div>
+        </section>
     </div>
 </div>
 

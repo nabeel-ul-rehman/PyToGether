@@ -7,15 +7,23 @@ from .models import PAYMENT_METHOD_CHOICES, User
 
 def validate_payment_method_entries(entries):
     allowed_methods = {choice[0] for choice in PAYMENT_METHOD_CHOICES}
+    legacy_methods = {"bank_transfer", "jazzcash", "easypaisa"}
+    normalized_entries = []
+    seen_entries = set()
     for index, payment_method in enumerate(entries):
         method = payment_method.get("method")
         identifier = payment_method.get("identifier", "").strip()
+        if method in legacy_methods:
+            method = "raast"
         if method not in allowed_methods:
             raise serializers.ValidationError({index: "Choose a valid payment method."})
         if method != "cash" and not identifier:
             raise serializers.ValidationError({index: "Enter the account number or ID for this method."})
-        payment_method["identifier"] = identifier
-    return entries
+        entry_key = (method, identifier)
+        if entry_key not in seen_entries:
+            normalized_entries.append({"method": method, "identifier": identifier})
+            seen_entries.add(entry_key)
+    return normalized_entries
 
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -119,6 +127,11 @@ class ProfileSerializer(serializers.ModelSerializer):
             "date_joined",
         ]
         read_only_fields = ["id", "date_joined"]
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data["payment_methods"] = validate_payment_method_entries(data.get("payment_methods", []))
+        return data
 
     def validate_payment_methods(self, value):
         return validate_payment_method_entries(value)

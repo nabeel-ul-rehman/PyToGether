@@ -33,10 +33,7 @@ class SettlementPayment(models.Model):
     ]
     PAYMENT_METHOD_CHOICES = [
         ("cash", "Cash"),
-        ("bank_transfer", "Bank Transfer"),
-        ("jazzcash", "JazzCash"),
-        ("easypaisa", "Easypaisa"),
-        ("raast", "Raast (manual transfer)"),
+        ("raast", "Raast / Bank / JazzCash / Easypaisa"),
         ("other", "Other"),
         ("stripe_card", "Card (Stripe)"),
     ]

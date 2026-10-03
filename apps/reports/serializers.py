@@ -20,7 +20,7 @@ class SettlementPaymentSerializer(serializers.Serializer):
     payer_name = serializers.CharField(read_only=True)
     amount = serializers.DecimalField(max_digits=10, decimal_places=2)
     payment_method = serializers.ChoiceField(
-        choices=["cash", "bank_transfer", "jazzcash", "easypaisa", "raast", "other", "stripe_card"]
+        choices=["cash", "raast", "other", "stripe_card"]
     )
     payment_details = serializers.JSONField(required=False, default=dict)
     payment_method_display = serializers.CharField(read_only=True)
@@ -37,8 +37,6 @@ class SettlementPaymentSerializer(serializers.Serializer):
                 raise serializers.ValidationError({"payment_details": {"sender_account": "Enter the Raast number you paid from."}})
             if not details.get("transaction_reference"):
                 raise serializers.ValidationError({"payment_details": {"transaction_reference": "Enter the Raast transaction reference."}})
-        elif method in {"bank_transfer", "jazzcash", "easypaisa"} and not details.get("transaction_reference"):
-            raise serializers.ValidationError({"payment_details": {"transaction_reference": "Enter the transfer reference or transaction ID."}})
         return attrs
 
 

@@ -7,10 +7,7 @@ from .managers import UserManager
 
 PAYMENT_METHOD_CHOICES = [
     ("cash", "Cash"),
-    ("bank_transfer", "Bank Transfer"),
-    ("jazzcash", "JazzCash"),
-    ("easypaisa", "EasyPaisa"),
-    ("raast", "Raast"),
+    ("raast", "Raast / Bank / JazzCash / Easypaisa"),
 ]
 # Create your models here.
 

@@ -200,7 +200,7 @@ async function loadMembers() {
                     member.role === "creator"
                         ? `<span class="text-xs font-bold text-brand-700 bg-brand-100 px-2 py-0.5 rounded-full">Creator</span>`
                         : `<span class="text-xs font-semibold text-slate-400">Member</span>`;
-                const paymentLabels = { cash: "Cash", bank_transfer: "Bank Transfer", jazzcash: "JazzCash", easypaisa: "EasyPaisa", raast: "Raast" };
+                const paymentLabels = { cash: "Cash", raast: "Raast / Bank / JazzCash / Easypaisa" };
                 const paymentMethods = member.payment_methods || [];
                 if (!paymentMethods.some((entry) => entry.method === "raast") && member.raast_number) {
                     paymentMethods.push({ method: "raast", identifier: member.raast_number });
@@ -378,15 +378,14 @@ function setupPaymentModal() {
     const recipientSelect = document.getElementById("paymentRecipient");
     const methodSelect = document.getElementById("paymentMethod");
     const methodDetails = document.getElementById("paymentMethodDetails");
+    const raastMethodModal = document.getElementById("raastMethodModal");
+    let selectedRaastSource = "";
 
     function updatePaymentMethodDetails() {
         const method = methodSelect.value;
         const recipient = currentReport?.members.find((member) => String(member.user_id) === recipientSelect.value);
         const labels = {
-            raast: { title: "Raast", description: "Send to the recipient's Raast ID, then enter your transfer details.", reference: "Raast transaction ID", sender: true, emoji: "🔗" },
-            bank_transfer: { title: "Bank Transfer", description: "Complete your bank transfer, then enter its reference.", reference: "Bank transfer reference", sender: false, emoji: "🏦" },
-            jazzcash: { title: "JazzCash", description: "Complete your JazzCash payment, then enter its transaction ID.", reference: "JazzCash transaction ID", sender: false, emoji: "💰" },
-            easypaisa: { title: "EasyPaisa", description: "Complete your EasyPaisa payment, then enter its transaction ID.", reference: "EasyPaisa transaction ID", sender: false, emoji: "📱" },
+            raast: { title: "Raast / bank / mobile wallet", description: "Send using Raast, a bank transfer, JazzCash or Easypaisa to the recipient details shown, then add your sender number and transaction reference.", reference: "Transfer reference or transaction ID", sender: true, emoji: "🔗" },
             cash: { title: "Cash", description: "Enter a receipt or note after paying in person.", reference: "Receipt or payment note", sender: false, emoji: "💵" },
         };
         const config = labels[method];
@@ -395,11 +394,17 @@ function setupPaymentModal() {
             return;
         }
 
-        const recipientMethod = recipient?.payment_methods?.find((entry) => entry.method === method);
-        const recipientIdentifier = recipientMethod?.identifier || (method === "raast" ? recipient?.raast_number : "");
+        const recipientIdentifiers = recipient?.payment_methods
+            ?.filter((entry) => entry.method === method && entry.identifier)
+            .map((entry) => entry.identifier) || [];
+        const recipientIdentifier = recipientIdentifiers.join(" / ") || (method === "raast" ? recipient?.raast_number : "");
         const recipientInfo = recipientIdentifier
             ? `<p class="text-sm text-slate-700">Pay <strong>${escapeHtml(recipient?.full_name || "selected member")}</strong> at <strong>${escapeHtml(recipientIdentifier)}</strong>.</p>`
             : method === "cash" ? "" : `<p class="text-sm text-amber-700">No ${escapeHtml(config.title)} account number or ID is on this member's profile.</p>`;
+        const sourceLabels = { jazzcash: "JazzCash", easypaisa: "Easypaisa", bank_account: "Bank Account" };
+        const selectedSource = method === "raast" && sourceLabels[selectedRaastSource]
+            ? `<p class="text-xs font-semibold text-brand-700">Selected payment source: ${sourceLabels[selectedRaastSource]}</p>`
+            : "";
         const senderField = config.sender
             ? `<div><label for="paymentSenderAccount" class="mb-1 block text-sm font-semibold text-slate-600">Your Raast number</label><input id="paymentSenderAccount" type="text" required maxlength="100" placeholder="Number or Raast ID you paid from" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"></div>`
             : "";
@@ -408,6 +413,7 @@ function setupPaymentModal() {
         methodDetails.innerHTML = `
             <p class="text-sm font-bold text-slate-800">${config.title}</p>
             <p class="text-xs leading-5 text-slate-500">${config.description}</p>
+            ${selectedSource}
             ${recipientInfo}
             <div class="grid gap-2 sm:grid-cols-2">${senderField}${referenceField}</div>`;
         document.querySelectorAll(".paymentMethodOption").forEach((option) => {
@@ -423,7 +429,29 @@ function setupPaymentModal() {
     function close() {
         modal.classList.add("hidden");
         detailsModal.classList.add("hidden");
+        raastMethodModal.classList.add("hidden");
+        selectedRaastSource = "";
         document.body.classList.remove("overflow-hidden");
+    }
+
+    function closeRaastPicker() {
+        raastMethodModal.classList.add("hidden");
+    }
+
+    function proceedWithPaymentMethod(method) {
+        if (method !== "raast") selectedRaastSource = "";
+        methodSelect.value = method;
+        updatePaymentMethodDetails();
+        const methodNames = { cash: "Cash", raast: "Raast" };
+        const methodEmojis = { cash: "💵", raast: "🔗" };
+        const recipient = currentReport?.members.find((member) => String(member.user_id) === recipientSelect.value);
+        document.getElementById("paymentDetailsTitle").textContent = `${methodNames[method]} payment`;
+        document.getElementById("paymentDetailsEmoji").textContent = methodEmojis[method];
+        document.getElementById("paymentDetailsRecipient").textContent = `Paying ${recipient?.full_name || "selected member"}`;
+        document.getElementById("paymentFormMessage").innerHTML = "";
+        modal.classList.add("hidden");
+        detailsModal.classList.remove("hidden");
+        if (window.lucide) lucide.createIcons();
     }
 
     function openPayment(recipientId, amount) {
@@ -458,6 +486,13 @@ function setupPaymentModal() {
         };
         form.reset();
         methodSelect.value = "";
+        selectedRaastSource = "";
+        document.querySelectorAll(".raastSourceOption").forEach((option) => {
+            option.classList.remove("border-brand-500", "bg-brand-50", "ring-2", "ring-brand-200");
+            option.setAttribute("aria-pressed", "false");
+        });
+        document.getElementById("continueRaastPayment").disabled = true;
+        raastMethodModal.classList.add("hidden");
         document.querySelectorAll(".paymentMethodOption").forEach((option) => {
             option.classList.remove("border-brand-600", "bg-brand-50", "text-brand-700", "ring-2", "ring-brand-200");
         });
@@ -505,18 +540,36 @@ function setupPaymentModal() {
             }
             return;
         }
-        methodSelect.value = option.dataset.method;
-        updatePaymentMethodDetails();
-        const methodNames = { cash: "Cash", bank_transfer: "Bank Transfer", jazzcash: "JazzCash", easypaisa: "EasyPaisa", raast: "Raast" };
-        const methodEmojis = { cash: "💵", bank_transfer: "🏦", jazzcash: "💰", easypaisa: "📱", raast: "🔗" };
-        const recipient = currentReport?.members.find((member) => String(member.user_id) === recipientSelect.value);
-        document.getElementById("paymentDetailsTitle").textContent = `${methodNames[methodSelect.value]} payment`;
-        document.getElementById("paymentDetailsEmoji").textContent = methodEmojis[methodSelect.value];
-        document.getElementById("paymentDetailsRecipient").textContent = `Paying ${recipient?.full_name || "selected member"}`;
-        document.getElementById("paymentFormMessage").innerHTML = "";
-        modal.classList.add("hidden");
-        detailsModal.classList.remove("hidden");
-        if (window.lucide) lucide.createIcons();
+        if (option.dataset.method === "raast") {
+            raastMethodModal.classList.remove("hidden");
+            if (window.lucide) lucide.createIcons();
+            return;
+        }
+        proceedWithPaymentMethod(option.dataset.method);
+    });
+    document.getElementById("raastSourceOptions").addEventListener("click", (event) => {
+        const option = event.target.closest(".raastSourceOption");
+        if (!option) return;
+        selectedRaastSource = option.dataset.source;
+        document.querySelectorAll(".raastSourceOption").forEach((item) => {
+            const selected = item === option;
+            item.setAttribute("aria-pressed", String(selected));
+            item.classList.toggle("border-brand-500", selected);
+            item.classList.toggle("bg-brand-50", selected);
+            item.classList.toggle("ring-2", selected);
+            item.classList.toggle("ring-brand-200", selected);
+        });
+        document.getElementById("continueRaastPayment").disabled = false;
+    });
+    document.getElementById("continueRaastPayment").addEventListener("click", () => {
+        if (!selectedRaastSource) return;
+        closeRaastPicker();
+        proceedWithPaymentMethod("raast");
+    });
+    document.getElementById("closeRaastMethodModal").addEventListener("click", closeRaastPicker);
+    document.getElementById("raastMethodOverlay").addEventListener("click", closeRaastPicker);
+    document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && !raastMethodModal.classList.contains("hidden")) closeRaastPicker();
     });
     document.getElementById("closePaymentDetailsBtn").addEventListener("click", close);
     document.getElementById("paymentDetailsModalOverlay").addEventListener("click", close);
@@ -535,6 +588,7 @@ function setupPaymentModal() {
             payment_details: {
                 sender_account: document.getElementById("paymentSenderAccount")?.value.trim() || "",
                 transaction_reference: document.getElementById("paymentTransactionReference")?.value.trim() || "",
+                raast_source: selectedRaastSource,
             },
             note: document.getElementById("paymentNote").value.trim(),
         };
@@ -656,6 +710,7 @@ async function loadReport() {
                                     <button type="button" class="reviewPaymentBtn text-red-600 font-bold hover:underline" data-payment-id="${payment.id}" data-action="rejected">Reject</button>` : ""}
                             </div>
                             ${payment.payment_method === "stripe_card" && payment.payment_details?.card_payment_received ? `<p class="mt-1 text-amber-700">Stripe charged the PayTogether account. The recipient must confirm after receiving their payout.</p>` : ""}
+                            ${payment.payment_details?.raast_source ? `<p class="mt-1 text-slate-500">Raast source: ${escapeHtml({ jazzcash: "JazzCash", easypaisa: "Easypaisa", bank_account: "Bank Account" }[payment.payment_details.raast_source] || payment.payment_details.raast_source)}</p>` : ""}
                             ${payment.payment_details?.sender_account || payment.payment_details?.transaction_reference ? `
                                 <p class="mt-1 text-slate-500">
                                     ${payment.payment_details.sender_account ? `From: ${escapeHtml(payment.payment_details.sender_account)} ` : ""}
